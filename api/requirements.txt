@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+azure-eventhub>=5.12.0
+pymongo
+redis>=5.0
