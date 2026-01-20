@@ -97,3 +97,11 @@ async def ws_telemetry(ws: WebSocket):
             await ws.receive_text()
     except WebSocketDisconnect:
         ws_manager.disconnect(ws)
+
+
+@app.get("/debug/stats")
+def debug_stats():
+    return {
+        "devices": mongo.db["devices"].count_documents({}),
+        "telemetry": mongo.db["telemetry"].count_documents({}),
+    }

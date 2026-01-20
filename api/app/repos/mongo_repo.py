@@ -22,5 +22,5 @@ class MongoRepo:
         )
 
     def query_telemetry(self, device_id: str, limit: int = 100) -> List[Dict[str, Any]]:
-        cur = self.telemetry.find({"deviceId": device_id}).sort("ts", -1).limit(limit)
+        cur = self.telemetry.find({"deviceId": device_id},{"_id": 0}).sort("ts", -1).limit(limit)
         return list(cur)[::-1]  # ascending order
