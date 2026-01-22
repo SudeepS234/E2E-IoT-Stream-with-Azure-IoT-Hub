@@ -1,3 +1,4 @@
+## <About the project will be put later>
 Step - 1: Start the Data Simulation
 1) Head to /device-sim in terminal
 2) add this in the .env file:
@@ -56,4 +57,4 @@ az iot hub connection-string show \
 
 Endpoints to verify:
 open ```http://localhost:8000```
-check /health , /devices , /telemetry/{device_id} , /debug/stats
+check `/health` , `/devices` , `/telemetry/{device_id}` , `/debug/stats`

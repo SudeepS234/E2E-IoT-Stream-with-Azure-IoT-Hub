@@ -25,7 +25,7 @@ IOTHUB_HOST = os.getenv("IOTHUB_HOST")  # HostName (no scheme)
 DEVICE_ID = os.getenv("DEVICE_ID")
 DEVICE_KEY = os.getenv("DEVICE_KEY")  # Base64 symmetric key
 API_VERSION = "2021-04-12"  # required in MQTT username for IoT Hub
-USE_WEBSOCKETS = os.getenv("USE_WEBSOCKETS", True)
+USE_WEBSOCKETS = os.getenv("USE_WEBSOCKETS", False)
 SEND_INTERVAL_SECONDS = int(os.getenv("SEND_INTERVAL_SECONDS", "5"))
 SAS_TTL_SECONDS = int(os.getenv("SAS_TTL_SECONDS", "3600"))
 
