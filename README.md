@@ -12,34 +12,28 @@ DEVICE_KEY=
    ```docker run --env-file .env device-sim```
    Then you can observe telemetry data generating (also can verify in Azure Portal)
 
-Step - 2: Start Mongo and Redis server in docker
+Step - 2: Start Mongo and Redis server
 ```
-docker run -d --name mongo \
-  -p 27017:27017 \
-  -v mongo_data:/data/db \
-  --restart unless-stopped \
-  mongo:4.4
+sudo systemctl start mongod
+sudo systemctl status mongod
 ```
 ```
-
-docker run -d --name redis \
-  -p 6379:6379 \
-  --restart unless-stopped \
-  redis:7
+sudo systemctl start redis-server
+sudo systemctl status redis-server
 ```
 
-Step - 3: Compose the FastAPI + Mongo + Redis Dockerfile
+Step - 3: Build the FastAPI Dockerfile
 1) Create .env file in /api and add:
 ```env
 EH_COMPAT_CONN_STR=
 EH_CONSUMER_GROUP=telemetry-app
 
 # MongoDB
-MONGO_URI=mongodb://mongo:27017
+MONGO_URI=mongodb://host.docker.internal:27017/iot_demo
 MONGO_DB=iot_demo
 
 # Redis
-REDIS_URL=redis://redis:6379/0
+REDIS_URL=redis://host.docker.internal:6379/0
 
 # Alerting thresholds (example)
 ALERT_TEMP_GT=80
@@ -52,8 +46,8 @@ az iot hub connection-string show \
   --policy-name service \
   -o tsv
 ```
-3) Run ```docker compose -f docker-compose.dev.yml up -d```
-4) After successful build run: ```docker compose -f docker-compose.dev.yml logs -f api``` to get live logs of every request and response codes
+3) Run ```docker build -t e2e-pipeline:1 .```
+4) After successful build run: ```docker run -p 8000:8000 --env-file .env --add-host=host.docker.internal:host-gateway e2e-pipeline:1``` to get live logs of every request and response codes
 
 Endpoints to verify:
 open ```http://localhost:8000```
