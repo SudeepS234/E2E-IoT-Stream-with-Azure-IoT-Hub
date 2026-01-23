@@ -19,7 +19,7 @@ COPY requirements.txt /app/requirements.txt
 
 # Install Python deps
 RUN pip install --upgrade pip && \
-    pip install -r /app/requirements.txt
+    pip install -r requirements.txt
 
 # Create a non-root user
 RUN useradd -ms /bin/bash appuser
