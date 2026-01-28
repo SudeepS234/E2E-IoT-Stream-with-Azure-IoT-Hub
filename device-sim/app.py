@@ -1,4 +1,3 @@
-
 import base64
 import hashlib
 import hmac
@@ -18,16 +17,13 @@ from dotenv import load_dotenv
 # -----------------------------
 load_dotenv()
 
-# -----------------------------
-# CONFIG: fill these or use .env
-# -----------------------------
-IOTHUB_HOST = os.getenv("IOTHUB_HOST")  # HostName (no scheme)
+IOTHUB_HOST = os.getenv("IOTHUB_HOST")  # HostName
 DEVICE_ID = os.getenv("DEVICE_ID")
 DEVICE_KEY = os.getenv("DEVICE_KEY")  # Base64 symmetric key
 API_VERSION = "2021-04-12"  # required in MQTT username for IoT Hub
 USE_WEBSOCKETS = os.getenv("USE_WEBSOCKETS", False)
 SEND_INTERVAL_SECONDS = int(os.getenv("SEND_INTERVAL_SECONDS", "5"))
-SAS_TTL_SECONDS = int(os.getenv("SAS_TTL_SECONDS", "3600"))
+SAS_TTL_SECONDS = int(os.getenv("SAS_TTL_SECONDS", "3600")) # time until SAS token is valid
 
 # -----------------------------
 # Helpers
@@ -62,7 +58,7 @@ def build_payload() -> dict:
         "humidity": round(50 + random.uniform(-5, 12), 2),
         "battery": max(0, min(100, int(90 + random.uniform(-12, 0)))),
         "status": random.choice(["OK", "OK", "OK", "WARN"]),  # mostly OK
-        "props": {"fw": "1.0.0", "site": "lab-A"},
+        "props": {"fw": "1.0.0", "site": "lab-A"}, # firmware version and site location
     }
 
 
@@ -97,7 +93,7 @@ def on_connect(client: mqtt.Client, userdata, flags, reason_code, properties=Non
 
 
 def on_disconnect(client: mqtt.Client, userdata, reason_code, properties=None):
-    print(f"[disconnect] reason_code={reason_code} (0 means clean; non-zero unexpected)")
+    print(f"[disconnect] reason_code={reason_code} (0 means clean; non-zero means unexpected disconnect)")
 
 
 def on_message(client: mqtt.Client, userdata, msg):
@@ -123,10 +119,10 @@ def main():
 
     sas = build_sas_token(IOTHUB_HOST, DEVICE_ID, DEVICE_KEY, ttl_seconds=SAS_TTL_SECONDS)
 
-    username = f"{IOTHUB_HOST}/{DEVICE_ID}/?api-version={API_VERSION}"
-    client_id = DEVICE_ID
+    username = f"{IOTHUB_HOST}/{DEVICE_ID}/?api-version={API_VERSION}" # unique identifier of the device used by azure to route the connections internally
+    client_id = DEVICE_ID # strictly required by Azure
 
-    transport = "websockets" if USE_WEBSOCKETS else "tcp"
+    transport = "tcp"
     port = 443 if USE_WEBSOCKETS else 8883
 
     # Create client with Callback API v2 to avoid deprecation warnings
@@ -136,16 +132,16 @@ def main():
         protocol=mqtt.MQTTv311,
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
     )
-    client.username_pw_set(username=username, password=sas)
+    client.username_pw_set(username=username, password=sas) # sas is the temporary password generated using device id which will be verified by iot hub and it is generated with a time limit
 
-    # TLS required by IoT Hub
-    client.tls_set(tls_version=ssl.PROTOCOL_TLSv1_2)
+    # TLS (Transport Level Security) required by IoT Hub
+    client.tls_set(tls_version=ssl.PROTOCOL_TLSv1_2) # ensures data is not intercepted between device and the cloud
     client.tls_insecure_set(False)
 
     # Attach callbacks
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
-    client.on_message = on_message
+    client.on_message = on_message # for c2d message and decoding them
     client.on_log = on_log  # comment out to reduce verbosity
 
     # Optionally tune reconnect backoff
@@ -162,7 +158,7 @@ def main():
         while True:
             payload_dict = build_payload()
             payload = json.dumps(payload_dict, separators=(",", ":"))
-            ok = safe_publish(client, d2c_topic, payload, qos=1, retries=5)
+            ok = safe_publish(client, d2c_topic, payload, qos=1, retries=5) # standard publish might fail if internet is not stable leading to unsuccessful connections, so a limit to retires is set which will allow reconnections that many times and safe exits if successful publish is made
             rc_txt = "ok" if ok else "fail"
             print(f"[d2c:{rc_txt}] topic={d2c_topic} payload={payload}")
             time.sleep(SEND_INTERVAL_SECONDS)
