@@ -12,7 +12,7 @@ DEVICE_KEY=
    ```docker run --env-file .env device-sim```
    Then you can observe telemetry data generating (also can verify in Azure Portal)
 
-Step - 2: Start Mongo and Redis server
+Step - 2: Start Mongo and Redis server (recommended versions: `mongod:8.0.17` `redis:7.0.15`)
 ```
 sudo systemctl start mongod
 sudo systemctl status mongod
